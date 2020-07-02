@@ -1,0 +1,14 @@
+# File managers
+.DS_Store
+.directory
+desktop.ini
+
+# Compressed files
+*.rar
+*.zip
+
+# Compiled extension
+*.crx
+
+# Extension key
+*.pem
