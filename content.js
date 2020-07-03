@@ -30,30 +30,23 @@ function runTests (testArray) {
 }
 
 try {
-  var finURL
   var shouldChangeURL = false
-  var originalURL = window.location.href
+  var locSearch = window.location.search
   const allParams = new URLSearchParams(window.location.search)
 
   if (allParams.has('fbclid') || allParams.has('gclid')) {
-    var locSearch = window.location.search
-
     locSearch = locSearch.replace(locSearch, rmQuery('fbclid', locSearch))
-    originalURL = originalURL.replace(locSearch, rmQuery('fbclid', locSearch))
-
     locSearch = locSearch.replace(locSearch, rmQuery('gclid', locSearch))
-    originalURL = originalURL.replace(locSearch, rmQuery('gclid', locSearch))
 
-    finURL = locSearch
     shouldChangeURL = true
   }
 
   if (shouldChangeURL) {
-    console.log('replacedQueryURL', window.location.search, finURL)
-    history.replaceState({}, null, finURL) // eslint-disable-line no-undef
+    console.log('replacedQueryURL', window.location.search, locSearch)
+    history.replaceState({}, null, locSearch) // eslint-disable-line no-undef
   }
 } catch (error) { // no-useless-catch
-  console.error('Running in test mode')
+  console.error('Running in test mode only for fbclid')
 
   var testArray = [
     '?fbclid=LALA&coupon=XDXD',
