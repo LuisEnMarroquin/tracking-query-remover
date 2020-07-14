@@ -1,8 +1,19 @@
 # Tracking query remover
 
-A Chrome and Firefox extension that removes `gclid` and `fbclid` from url query
+A Chrome and Firefox extension that removes the following trackers from URLs query
 
-This extension is not designed to hide from the website you are visiting with the tracking queries (you can see in Network tab on DevTools that request is done before the extension removes the query), but is intended for the user to see a cleaner url to share or save to a document. I would like to add this feature on a future release but this is my first Chrome extension and this is what I came out with
+Facebook
+* fbclid
+
+Google
+* gclid
+* utm_source
+* utm_medium
+* utm_campaign
+* utm_term
+* utm_content
+
+This extension is not designed to hide from the website you are visiting with the tracking queries (you can see in Network tab on DevTools that request is done before the extension removes the query), but is intended for the user to see a cleaner url to share or save it to a document. I would like to add this feature on a future release, if you have the time to, send a pull request
 
 ## Tests
 

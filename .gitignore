@@ -12,3 +12,6 @@ desktop.ini
 
 # Extension key
 *.pem
+
+# Notes files
+nothing.*

@@ -34,9 +34,27 @@ try {
   var locSearch = window.location.search
   const allParams = new URLSearchParams(window.location.search)
 
-  if (allParams.has('fbclid') || allParams.has('gclid')) {
-    locSearch = locSearch.replace(locSearch, rmQuery('fbclid', locSearch))
-    locSearch = locSearch.replace(locSearch, rmQuery('gclid', locSearch))
+  const exts = [
+    'fbclid',
+    'gclid',
+    'utm_source',
+    'utm_medium',
+    'utm_campaign',
+    'utm_term',
+    'utm_content'
+  ]
+
+  var extsBol = []
+
+  exts.forEach(ext => {
+    var isAtURL = allParams.has(ext)
+    extsBol.push(isAtURL)
+  })
+
+  if (extsBol.includes(true)) {
+    exts.forEach(ext => {
+      locSearch = locSearch.replace(locSearch, rmQuery(ext, locSearch))
+    })
 
     shouldChangeURL = true
   }
