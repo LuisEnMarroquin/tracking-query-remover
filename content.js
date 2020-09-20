@@ -1,11 +1,9 @@
 function rmQuery (theQuery, fullURL) {
   const allParams = new URLSearchParams(fullURL)
-
-  if (allParams.has(theQuery)) { // Si el parametro existe
+  if (allParams.has(theQuery)) { // If param exists
     const ourParam = allParams.get(theQuery)
     let cleanURL
-
-    if (ourParam !== '') { // Si el parametro no está vacio
+    if (ourParam !== '') { // If param is not empty
       let replac1 = fullURL.replace(`&${theQuery}=${ourParam}`, '')
       let replac2 = replac1.replace(`${theQuery}=${ourParam}`, '')
       cleanURL = replac2
@@ -16,57 +14,42 @@ function rmQuery (theQuery, fullURL) {
       let replac4 = replac3.replace(`${theQuery}`, '')
       cleanURL = replac4
     }
-
     let finalURL = cleanURL.replace(`?&`, '?')
     return finalURL
-  } else return fullURL
+  } else {
+    return fullURL
+  }
 }
 
 function runTests (testArray) {
   testArray.forEach(searchText => {
-    var removeText = rmQuery('fbclid', searchText)
+    let removeText = rmQuery('fbclid', searchText)
     console.log('-', searchText, '===', removeText)
   })
 }
 
 try {
-  var shouldChangeURL = false
-  var locSearch = window.location.search
+  let extsInURL = []
+  let locSearch = window.location.search
   const allParams = new URLSearchParams(window.location.search)
-
-  const exts = [
-    'fbclid',
-    'gclid',
-    'utm_source',
-    'utm_medium',
-    'utm_campaign',
-    'utm_term',
-    'utm_content'
-  ]
-
-  var extsBol = []
+  const exts = [ 'gclid', 'fbclid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content' ]
 
   exts.forEach(ext => {
-    var isAtURL = allParams.has(ext)
-    extsBol.push(isAtURL)
+    let isAtURL = allParams.has(ext)
+    extsInURL.push(isAtURL)
   })
 
-  if (extsBol.includes(true)) {
-    exts.forEach(ext => {
-      locSearch = locSearch.replace(locSearch, rmQuery(ext, locSearch))
+  if (extsInURL.includes(true)) {
+    exts.forEach(extension => {
+      locSearch = locSearch.replace(locSearch, rmQuery(extension, locSearch))
     })
-
-    shouldChangeURL = true
-  }
-
-  if (shouldChangeURL) {
     console.log('replacedQueryURL', window.location.search, locSearch)
     history.replaceState({}, null, locSearch) // eslint-disable-line no-undef
   }
 } catch (error) { // no-useless-catch
   console.error('Running in test mode only for fbclid')
 
-  var testArray = [
+  let testArray = [
     '?fbclid=LALA&coupon=XDXD',
     '?coupon=XDXD&fbclid=LALA',
     '?fbclid=LALA',

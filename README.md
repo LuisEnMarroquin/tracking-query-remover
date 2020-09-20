@@ -1,16 +1,13 @@
-# Tracking query remover
+# Tracking Query Remover
 
 A Chrome and Firefox extension that removes trackers from query for a simpler and cleaner URL
 
 ![image-not-found](https://marroquin.dev/cdn/query_extension.jpg)
 
-This extension will remove the following trackers:
+This extension will remove the following trackers from **Google** and **Facebook**:
 
-Facebook
-* fbclid
-
-Google
 * gclid
+* fbclid
 * utm_source
 * utm_medium
 * utm_campaign
