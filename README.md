@@ -2,7 +2,7 @@
 
 A Chrome and Firefox extension that removes trackers from query for a simpler and cleaner URL
 
-![image-not-found](https://marroquin.dev/cdn/query_extension.jpg)
+![image-not-found](readme.jpg)
 
 This extension will remove the following trackers from **Google** and **Facebook**:
 
