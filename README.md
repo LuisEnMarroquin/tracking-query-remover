@@ -16,6 +16,13 @@ This extension will remove the following trackers from **Google** and **Facebook
 
 This extension is not designed to hide from the website you are visiting with the tracking queries (you can see in Network tab on DevTools that request is done before the extension removes the query), but is intended for the user to see a cleaner url to share or save it to a document. I would like to add this feature on a future release, if you have the time to do so, send a pull request
 
+## Install
+
+You can install the extension/add-on for the following browsers:
+
+* [Google Chrome](https://chrome.google.com/webstore/detail/tracking-query-remover/cdhgohknmmkonojeajegbnkbmfkkhobb)
+* [Mozilla Firefox](https://addons.mozilla.org/en-US/firefox/addon/tracking-query-remover/)
+
 ## Tests
 
 You can test without a web browser using **NodeJS** running
