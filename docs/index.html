@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy Policy — Tracking Query Remover</title>
+    <meta name="description" content="Privacy policy for the Tracking Query Remover browser extension. No data is collected, transmitted, or stored.">
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f7f9;
+        --surface: #ffffff;
+        --text: #16181d;
+        --muted: #5b6068;
+        --border: #e2e5ea;
+        --accent: #1f5fd0;
+        --good-bg: #eaf6ee;
+        --good-border: #b9e0c7;
+        --good-text: #1c5c33;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121316;
+          --surface: #1b1d21;
+          --text: #eceef1;
+          --muted: #a0a6ae;
+          --border: #2e3137;
+          --accent: #7aa7ff;
+          --good-bg: #16281c;
+          --good-border: #2c5537;
+          --good-text: #8fd6a5;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 32px 20px 64px;
+      }
+
+      main {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin: 0 auto;
+        max-width: 760px;
+        padding: 40px;
+      }
+
+      header {
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+      }
+
+      h1 {
+        font-size: 28px;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+        margin: 0 0 6px;
+      }
+
+      h2 {
+        font-size: 18px;
+        letter-spacing: -0.01em;
+        margin: 32px 0 10px;
+      }
+
+      p, li {
+        color: var(--text);
+      }
+
+      .subtitle {
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .summary {
+        background: var(--good-bg);
+        border: 1px solid var(--good-border);
+        border-radius: 8px;
+        color: var(--good-text);
+        margin: 0;
+        padding: 16px 18px;
+      }
+
+      .summary strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      table {
+        border-collapse: collapse;
+        display: block;
+        margin-top: 8px;
+        overflow-x: auto;
+        width: 100%;
+      }
+
+      th, td {
+        border-bottom: 1px solid var(--border);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      code {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.88em;
+        padding: 1px 5px;
+      }
+
+      ul {
+        padding-left: 20px;
+      }
+
+      li {
+        margin-bottom: 6px;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      footer {
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 40px;
+        padding-top: 20px;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 26px 20px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Privacy Policy</h1>
+        <p class="subtitle">Tracking Query Remover browser extension · Last updated September 1, 2026</p>
+      </header>
+
+      <p class="summary">
+        <strong>Tracking Query Remover does not collect your data.</strong>
+        It has no servers, no analytics, no telemetry and no third-party services. Nothing about
+        the pages you visit ever leaves your device.
+      </p>
+
+      <h2>What the extension does</h2>
+      <p>
+        Tracking Query Remover reads the address of the page you are on, removes known marketing
+        and attribution parameters from the query string — <code>utm_source</code>,
+        <code>fbclid</code>, <code>gclid</code> and similar — and rewrites the address bar with
+        the shortened link. The comparison runs entirely inside your browser against a list that
+        ships with the extension.
+      </p>
+      <p>
+        The rewrite happens after the page has already been requested, so it does not prevent the
+        website itself from receiving the parameters that were part of that first request. Its
+        purpose is to give you a clean link to copy and share.
+      </p>
+
+      <h2>Information the extension handles</h2>
+      <table>
+        <tr>
+          <th>Information</th>
+          <th>How it is used</th>
+        </tr>
+        <tr>
+          <td>The URL of the page you are viewing</td>
+          <td>
+            Held in memory only while the page is open, compared against the built-in parameter
+            list, and discarded. It is never written to disk, logged, or sent anywhere.
+          </td>
+        </tr>
+        <tr>
+          <td>Sites you turn the extension off for</td>
+          <td>
+            Stored as a list of hostnames in your browser's extension storage so the setting
+            survives a restart. It contains only the hostnames you chose yourself.
+          </td>
+        </tr>
+      </table>
+      <p>
+        If you have browser sync enabled, that hostname list is synchronized between your own
+        devices by your browser vendor, in the same way your bookmarks are. It is not sent to the
+        developer of this extension, who has no way to read it.
+      </p>
+
+      <h2>Information the extension does not handle</h2>
+      <ul>
+        <li>No browsing history, page content, form data, or keystrokes are read or recorded.</li>
+        <li>No personally identifiable information, credentials, or payment details are accessed.</li>
+        <li>No data is transmitted to the developer or to any third party.</li>
+        <li>No analytics, crash reporting, advertising, or fingerprinting code is included.</li>
+        <li>No data is sold, rented, or transferred to anyone, for any purpose.</li>
+        <li>No remotely hosted code is downloaded or executed.</li>
+      </ul>
+
+      <h2>Permissions and why they are needed</h2>
+      <table>
+        <tr>
+          <th>Permission</th>
+          <th>Reason</th>
+        </tr>
+        <tr>
+          <td><code>http://*/*</code><br><code>https://*/*</code></td>
+          <td>
+            Tracking parameters are appended by any site that links to another, so the extension
+            has to be able to inspect the address of ordinary web pages. It runs only on
+            <code>http</code> and <code>https</code> pages and never reads local files.
+          </td>
+        </tr>
+        <tr>
+          <td><code>storage</code></td>
+          <td>Saves the list of sites where you have turned cleaning off.</td>
+        </tr>
+        <tr>
+          <td><code>activeTab</code></td>
+          <td>
+            Lets the toolbar popup show the hostname of the tab you are looking at, so you can
+            toggle that one site. It applies only to the tab that is open when you click the
+            icon.
+          </td>
+        </tr>
+      </table>
+
+      <h2>Children's privacy</h2>
+      <p>
+        The extension collects no information from anyone, including children under 13.
+      </p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        If the extension's behaviour ever changes, this page is updated before the new version is
+        published, and the date at the top changes with it. The full history of this document is
+        public in the repository.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions, corrections, or concerns can be raised as an issue at
+        <a href="https://github.com/LuisEnMarroquin/tracking-query-remover/issues">github.com/LuisEnMarroquin/tracking-query-remover/issues</a>.
+      </p>
+
+      <footer>
+        Tracking Query Remover is open source under the MIT license. The complete code reviewed by
+        this policy is at
+        <a href="https://github.com/LuisEnMarroquin/tracking-query-remover">github.com/LuisEnMarroquin/tracking-query-remover</a>.
+      </footer>
+    </main>
+  </body>
+</html>

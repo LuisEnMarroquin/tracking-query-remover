@@ -12,9 +12,21 @@ The extension removes common campaign, click, email, and affiliate identifiers, 
 * Domain-specific share parameters from YouTube, Spotify, Instagram, Reddit, Facebook, and X
 * Domain-specific affiliate parameters from Amazon and eBay
 
-Generic parameter names are removed only on domains where their meaning is known. Functional parameters for videos, searches, authentication, and application state are preserved. Email identifiers are also preserved on unsubscribe, subscription-management, preference, and browser-view pages.
+Generic parameter names are removed only on domains where their meaning is known, and only on the subdomains that serve those pages, so names such as `tag`, `ref`, or `client` are left alone on `aws.amazon.com` or `docs.google.com`. Functional parameters for videos, searches, authentication, and application state are preserved, including the eBay listing variation (`var`) and the identifiers that resolve LinkedIn email links (`eid`, `midToken`, `midSig`). Email identifiers are also preserved on unsubscribe, subscription-management, preference, and browser-view pages.
 
 The extension cleans the address bar after the initial page request. It does not block the website from receiving parameters included in that first request. It does not collect, transmit, or store browsing data.
+
+## Per-site control
+
+Click the toolbar icon to turn cleaning off for the site you are on. The list of disabled sites is kept in browser storage and covers subdomains, so disabling `example.com` also disables `shop.example.com`. Reload the page after changing the setting.
+
+## Permissions
+
+* `http://*/*` and `https://*/*` to read the address of ordinary web pages. Local files and other schemes are never touched
+* `storage` to remember the sites you turned off
+* `activeTab` so the popup can show the hostname of the current tab
+
+The [privacy policy](https://luisenmarroquin.github.io/tracking-query-remover/) covers what the extension does and does not do with that access.
 
 ## Install
 
@@ -52,8 +64,10 @@ The icon was created with **GIMP** on a 16x16 pixel canvas using a size 1 pencil
 
 ## Package extension
 
-Create a ZIP containing `manifest.json`, `content.js`, and the PNG icons, then upload it from the **Package** tab in the Chrome Web Store Developer Dashboard.
+Create a ZIP containing `manifest.json`, `content.js`, `popup.html`, `popup.js`, and the PNG icons, then upload it from the **Package** tab in the Chrome Web Store Developer Dashboard.
+
+```shell
+mkdir -p dist && zip -j "dist/tracking-query-remover-$(node -p "require('./manifest.json').version").zip" manifest.json content.js popup.html popup.js icon16.png icon48.png icon128.png
+```
 
 Each Chrome Web Store update must use a version number higher than the currently published version.
-
-As a reminder for me, I saved my key at **G2** on `KEYS` folder

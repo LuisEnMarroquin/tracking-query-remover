@@ -147,11 +147,20 @@ const EMAIL_FUNCTIONAL_PARAMS = new Set([
   'ml_subscriber_hash'
 ])
 
-const EMAIL_ROUTE_PATTERN = /(?:^|[\/_-])(email[-_]?preferences?|manage[-_]?subscriptions?|preferences?|subscriptions?|unsubscrib(?:e|ed)|view[-_]?in[-_]?browser|email[-_]?webview)(?:[\/_-]|$)/i
+// Only compound route names are matched. Bare words such as "preferences" or
+// "subscriptions" appear on ordinary application pages and used to keep email
+// identifiers alive far outside the flows that need them.
+const EMAIL_ROUTE_PATTERN = /(?:^|[\/_-])(?:unsubscrib(?:e|ed|ing)|opt[-_]?outs?|email[-_]?(?:preferences?|settings|subscriptions?|webview)|manage[-_]?(?:preferences?|subscriptions?|email)|subscription[-_]?(?:center|preferences?)|notification[-_]?preferences?|communication[-_]?preferences?|mailing[-_]?preferences?|update[-_]?profile|profile[-_]?center|view[-_]?in[-_]?browser|web[-_]?version)(?:[\/_-]|$)/i
 
+const EMAIL_ROUTE_QUERY_KEYS = [ 'action', 'display', 'mode', 'page', 'view' ]
+
+// `subdomains` restricts a rule to the hosts that actually serve the pages the
+// parameters belong to. Without it, generic names such as `tag`, `ref` or
+// `client` are stripped from unrelated properties on the same registered
+// domain, for example aws.amazon.com or docs.google.com.
 const DOMAIN_RULES = [
   {
-    domains: [ 'youtube.com', 'youtu.be' ],
+    domains: [ 'youtube.com' ],
     exact: [
       'embeds_referring_euri',
       'embeds_referring_origin',
@@ -171,7 +180,7 @@ const DOMAIN_RULES = [
     exact: [ 'igsh', 'igshid' ]
   },
   {
-    domains: [ 'reddit.com', 'redd.it' ],
+    domains: [ 'reddit.com' ],
     exact: [
       'correlation_id',
       'rdt',
@@ -185,7 +194,7 @@ const DOMAIN_RULES = [
     exact: [ 'cn', 'cxt', 'mx', 'ref_src', 'ref_url', 's', 'src', 't' ]
   },
   {
-    domains: [ 'facebook.com', 'fb.com', 'messenger.com' ],
+    domains: [ 'facebook.com', 'messenger.com' ],
     exact: [
       '__cft__',
       '__tn__',
@@ -206,13 +215,12 @@ const DOMAIN_RULES = [
     ]
   },
   {
+    // `eid`, `midToken` and `midSig` resolve the destination of LinkedIn email
+    // links, so they are kept even though they also carry attribution.
     domains: [ 'linkedin.com' ],
     exact: [
       'ebp',
-      'eid',
       'lipi',
-      'midsig',
-      'midtoken',
       'originalsubdomain',
       'refid',
       'trackingid',
@@ -221,7 +229,7 @@ const DOMAIN_RULES = [
     ]
   },
   {
-    domains: [ 'pinterest.com', 'pin.it' ],
+    domains: [ 'pinterest.com' ],
     exact: [ 'pp', 'source_url' ]
   },
   {
@@ -246,9 +254,9 @@ const DOMAIN_RULES = [
       'amazon.sa',
       'amazon.se',
       'amazon.sg',
-      'amazon.com.tr',
-      'amzn.to'
+      'amazon.com.tr'
     ],
+    subdomains: [ 'www', 'smile', 'm' ],
     exact: [
       'ascsubtag',
       'camp',
@@ -267,6 +275,8 @@ const DOMAIN_RULES = [
     prefixes: [ 'pd_rd_', 'pf_rd_' ]
   },
   {
+    // `var` selects the variation of a multi-variation listing, so removing it
+    // would send shared links to the default option instead.
     domains: [
       'ebay.at',
       'ebay.be',
@@ -275,14 +285,19 @@ const DOMAIN_RULES = [
       'ebay.co.uk',
       'ebay.com',
       'ebay.com.au',
+      'ebay.com.hk',
+      'ebay.com.my',
+      'ebay.com.sg',
       'ebay.de',
       'ebay.es',
       'ebay.fr',
       'ebay.ie',
       'ebay.it',
       'ebay.nl',
+      'ebay.ph',
       'ebay.pl'
     ],
+    subdomains: [ 'www', 'm' ],
     exact: [
       'campid',
       'customid',
@@ -291,8 +306,7 @@ const DOMAIN_RULES = [
       'mkevt',
       'mkgroupid',
       'mkrid',
-      'toolid',
-      'var'
+      'toolid'
     ]
   },
   {
@@ -303,6 +317,7 @@ const DOMAIN_RULES = [
       'google.ca',
       'google.ch',
       'google.cl',
+      'google.co.id',
       'google.co.il',
       'google.co.in',
       'google.co.jp',
@@ -320,24 +335,33 @@ const DOMAIN_RULES = [
       'google.com.hk',
       'google.com.mx',
       'google.com.pe',
+      'google.com.ph',
       'google.com.sa',
       'google.com.sg',
       'google.com.tr',
       'google.com.tw',
+      'google.com.ua',
       'google.com.uy',
+      'google.com.vn',
+      'google.cz',
       'google.de',
       'google.dk',
       'google.es',
       'google.fi',
       'google.fr',
+      'google.gr',
+      'google.hu',
       'google.ie',
       'google.it',
       'google.nl',
       'google.no',
       'google.pl',
       'google.pt',
+      'google.ro',
+      'google.ru',
       'google.se'
     ],
+    subdomains: [ 'www', 'books', 'images', 'maps', 'news', 'scholar', 'shopping', 'video' ],
     exact: [
       'aqs',
       'bih',
@@ -359,22 +383,33 @@ const DOMAIN_RULES = [
   },
   {
     domains: [ 'bing.com' ],
+    subdomains: [ 'www', 'cn' ],
     exact: [ 'cvid', 'form', 'ghacc', 'ghpl', 'ghsh', 'lq', 'pq', 'qs', 'sc', 'sk', 'sp' ]
   }
 ]
 
-function hostMatchesDomain (hostname, domain) {
-  return hostname === domain || hostname.endsWith(`.${domain}`)
+const DISABLED_HOSTS_KEY = 'disabledHosts'
+
+// Browsers without the Navigation API do not report history.pushState() calls
+// made by the page, so the address bar is polled instead.
+const URL_POLL_INTERVAL_MS = 500
+
+function hostMatchesDomain (hostname, domain, subdomains) {
+  if (hostname === domain) return true
+  if (!hostname.endsWith(`.${domain}`)) return false
+  if (!subdomains) return true
+
+  return subdomains.includes(hostname.slice(0, -(domain.length + 1)))
 }
 
 function ruleMatchesHost (rule, hostname) {
-  return rule.domains.some(domain => hostMatchesDomain(hostname, domain))
+  return rule.domains.some(domain => hostMatchesDomain(hostname, domain, rule.subdomains))
 }
 
 function isEmailActionUrl (url) {
   if (EMAIL_ROUTE_PATTERN.test(url.pathname)) return true
 
-  return [ 'action', 'display', 'page', 'view' ].some(key => {
+  return EMAIL_ROUTE_QUERY_KEYS.some(key => {
     const value = url.searchParams.get(key)
     return value !== null && EMAIL_ROUTE_PATTERN.test(value)
   })
@@ -384,15 +419,17 @@ function matchesPrefixes (name, prefixes) {
   return prefixes.some(prefix => name.startsWith(prefix))
 }
 
-function shouldRemoveParam (rawName, url) {
+function shouldRemoveParam (rawName, url, emailAction = isEmailActionUrl(url)) {
   const name = rawName.toLowerCase()
 
-  if (isEmailActionUrl(url) && EMAIL_FUNCTIONAL_PARAMS.has(name)) return false
+  if (emailAction && EMAIL_FUNCTIONAL_PARAMS.has(name)) return false
   if (GLOBAL_EXACT_PARAMS.has(name)) return true
   if (matchesPrefixes(name, GLOBAL_PARAM_PREFIXES)) return true
 
+  const hostname = url.hostname.toLowerCase()
+
   return DOMAIN_RULES.some(rule => {
-    if (!ruleMatchesHost(rule, url.hostname.toLowerCase())) return false
+    if (!ruleMatchesHost(rule, hostname)) return false
 
     const exact = rule.exact || []
     const prefixes = rule.prefixes || []
@@ -408,38 +445,52 @@ function decodeParamName (rawName) {
   }
 }
 
+function normalizeHost (hostname) {
+  return hostname.toLowerCase().replace(/^www\./, '')
+}
+
+function isDisabledHost (hostname, disabledHosts) {
+  if (!Array.isArray(disabledHosts) || disabledHosts.length === 0) return false
+
+  const host = normalizeHost(hostname)
+
+  return disabledHosts.some(entry => {
+    const disabled = normalizeHost(String(entry))
+    return disabled !== '' && (host === disabled || host.endsWith(`.${disabled}`))
+  })
+}
+
 function cleanUrl (input) {
+  const unchanged = { changed: false, removed: [], url: input }
   let url
 
   try {
     url = new URL(input)
   } catch (error) {
-    return { changed: false, removed: [], url: input }
+    return unchanged
   }
 
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    return { changed: false, removed: [], url: input }
-  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return unchanged
+  if (url.search === '') return unchanged
 
+  const emailAction = isEmailActionUrl(url)
   const removed = []
-  const rawParams = url.search === '' ? [] : url.search.slice(1).split('&')
-  const keptParams = rawParams.filter(rawParam => {
+  const keptParams = url.search.slice(1).split('&').filter(rawParam => {
     if (rawParam === '') return false
 
-    const rawName = rawParam.split('=', 1)[0]
-    const name = decodeParamName(rawName)
+    const name = decodeParamName(rawParam.split('=', 1)[0])
 
-    if (!shouldRemoveParam(name, url)) return true
+    if (!shouldRemoveParam(name, url, emailAction)) return true
     if (!removed.includes(name)) removed.push(name)
     return false
   })
 
-  if (removed.length > 0) {
-    url.search = keptParams.length > 0 ? `?${keptParams.join('&')}` : ''
-  }
+  if (removed.length === 0) return unchanged
+
+  url.search = keptParams.length > 0 ? `?${keptParams.join('&')}` : ''
 
   return {
-    changed: removed.length > 0,
+    changed: true,
     removed,
     url: url.href
   }
@@ -448,16 +499,62 @@ function cleanUrl (input) {
 function cleanCurrentUrl () {
   const result = cleanUrl(window.location.href)
 
-  if (result.changed) {
-    history.replaceState(history.state, document.title, result.url)
+  if (!result.changed) return result
+
+  try {
+    history.replaceState(history.state, '', result.url)
+  } catch (error) {
+    // Documents with an opaque origin, such as sandboxed pages, reject history
+    // updates. The page is left untouched instead of throwing.
   }
 
   return result
 }
 
+function readDisabledHosts (callback) {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.sync) {
+      callback([])
+      return
+    }
+
+    chrome.storage.sync.get({ [DISABLED_HOSTS_KEY]: [] }, items => {
+      const failed = chrome.runtime && chrome.runtime.lastError
+      callback(failed ? [] : items[DISABLED_HOSTS_KEY])
+    })
+  } catch (error) {
+    callback([])
+  }
+}
+
+function watchDisabledHosts (callback) {
+  try {
+    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.onChanged) return
+
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'sync' || !changes[DISABLED_HOSTS_KEY]) return
+      callback(changes[DISABLED_HOSTS_KEY].newValue || [])
+    })
+  } catch (error) {
+    // Storage events are optional; the current setting still applies.
+  }
+}
+
 function startUrlCleaner () {
+  // Cleaning stays off until the stored site list is known, so a disabled site
+  // never gets its address bar rewritten on the way in.
+  let enabled = false
   let cleanupScheduled = false
   let lastSeenUrl = window.location.href
+
+  const applyDisabledHosts = disabledHosts => {
+    enabled = !isDisabledHost(window.location.hostname, disabledHosts)
+  }
+
+  const cleanNow = () => {
+    if (enabled) cleanCurrentUrl()
+    lastSeenUrl = window.location.href
+  }
 
   const scheduleCleanup = () => {
     if (cleanupScheduled) return
@@ -465,14 +562,19 @@ function startUrlCleaner () {
 
     queueMicrotask(() => {
       cleanupScheduled = false
-      lastSeenUrl = window.location.href
-      cleanCurrentUrl()
-      lastSeenUrl = window.location.href
+      cleanNow()
     })
   }
 
-  cleanCurrentUrl()
-  lastSeenUrl = window.location.href
+  readDisabledHosts(disabledHosts => {
+    applyDisabledHosts(disabledHosts)
+    cleanNow()
+  })
+
+  watchDisabledHosts(disabledHosts => {
+    applyDisabledHosts(disabledHosts)
+    cleanNow()
+  })
 
   window.addEventListener('popstate', scheduleCleanup)
   window.addEventListener('hashchange', scheduleCleanup)
@@ -482,26 +584,24 @@ function startUrlCleaner () {
     return
   }
 
-  // Watching DOM changes provides a low-impact fallback in browsers without
-  // the Navigation API when SPAs update the URL with history.pushState().
-  const observer = new MutationObserver(() => {
-    if (window.location.href !== lastSeenUrl) scheduleCleanup()
-  })
+  // Polling replaces a document-wide MutationObserver here: it costs nothing on
+  // busy pages and it also catches history.pushState() calls that never touch
+  // the DOM, which the observer used to miss entirely.
+  setInterval(() => {
+    if (document.visibilityState === 'hidden') return
+    if (window.location.href === lastSeenUrl) return
 
-  const observeDocument = () => {
-    if (!document.documentElement) return
-    observer.observe(document.documentElement, { childList: true, subtree: true })
-  }
-
-  if (document.documentElement) {
-    observeDocument()
-  } else {
-    document.addEventListener('readystatechange', observeDocument, { once: true })
-  }
+    lastSeenUrl = window.location.href
+    scheduleCleanup()
+  }, URL_POLL_INTERVAL_MS)
 }
 
 if (typeof window !== 'undefined' && typeof history !== 'undefined') {
-  startUrlCleaner()
+  try {
+    startUrlCleaner()
+  } catch (error) {
+    // A content script failure must never take the host page down with it.
+  }
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -509,7 +609,9 @@ if (typeof module !== 'undefined' && module.exports) {
     cleanUrl,
     decodeParamName,
     hostMatchesDomain,
+    isDisabledHost,
     isEmailActionUrl,
+    normalizeHost,
     shouldRemoveParam
   }
 }

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Tracking Query Remover</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --surface: #ffffff;
+        --text: #1c1c1e;
+        --muted: #6b7280;
+        --border: #e3e5e8;
+        --accent: #2f6fed;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --surface: #1f2023;
+          --text: #f2f3f5;
+          --muted: #9ba1a9;
+          --border: #35373c;
+          --accent: #6f9bff;
+        }
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 14px;
+        width: 260px;
+      }
+
+      h1 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0 0 10px;
+      }
+
+      .host {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow-wrap: anywhere;
+        padding: 7px 9px;
+        color: var(--muted);
+      }
+
+      .row {
+        align-items: center;
+        display: flex;
+        gap: 9px;
+        margin-top: 12px;
+      }
+
+      label {
+        cursor: pointer;
+      }
+
+      input[type="checkbox"] {
+        accent-color: var(--accent);
+        height: 15px;
+        margin: 0;
+        width: 15px;
+      }
+
+      .note {
+        color: var(--muted);
+        margin: 10px 0 0;
+      }
+
+      [hidden] {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tracking Query Remover</h1>
+    <div class="host" id="host">Loading…</div>
+
+    <div class="row" id="controls" hidden>
+      <input type="checkbox" id="toggle">
+      <label for="toggle">Clean links on this site</label>
+    </div>
+
+    <p class="note" id="note" hidden>Reload the page to apply the change.</p>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -3,7 +3,7 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 
-const { cleanUrl } = require('../content.js')
+const { cleanUrl, isDisabledHost, normalizeHost } = require('../content.js')
 
 test('removes global trackers and preserves functional parameters and fragments', () => {
   const result = cleanUrl('https://example.com/watch?v=42&utm_source=newsletter&gclid=abc#chapter-2')
@@ -106,4 +106,85 @@ test('does not modify unsupported or malformed URLs', () => {
     removed: [],
     url: 'not a URL'
   })
+})
+
+test('returns the original input untouched when nothing is removed', () => {
+  const url = 'https://EXAMPLE.com/Path?keep=1'
+
+  assert.deepEqual(cleanUrl(url), { changed: false, removed: [], url })
+})
+
+test('keeps the eBay listing variation while removing partner attribution', () => {
+  const result = cleanUrl('https://www.ebay.com/itm/123?var=987&mkcid=1&campid=5338&toolid=10001')
+
+  assert.equal(result.url, 'https://www.ebay.com/itm/123?var=987')
+})
+
+test('limits shopping rules to storefront subdomains', () => {
+  const aws = 'https://aws.amazon.com/ec2/pricing/?tag=team-a&ref=nav&qid=1'
+  const sellerCentral = 'https://sellercentral.amazon.com/inventory?tag=mytag&sr=1'
+  const storefront = cleanUrl('https://smile.amazon.com/dp/ABC?tag=affiliate-20&th=1')
+
+  assert.deepEqual(cleanUrl(aws), { changed: false, removed: [], url: aws })
+  assert.deepEqual(cleanUrl(sellerCentral), { changed: false, removed: [], url: sellerCentral })
+  assert.equal(storefront.url, 'https://smile.amazon.com/dp/ABC?th=1')
+})
+
+test('limits search rules to search subdomains', () => {
+  const docs = 'https://docs.google.com/spreadsheets/d/ID/edit?gid=0&client=abc'
+  const search = cleanUrl('https://www.google.com/search?q=test&client=firefox-b-d&ei=X&ved=Y')
+  const russia = cleanUrl('https://www.google.ru/search?q=test&sourceid=chrome')
+  const bingApp = 'https://edgeservices.bing.com/edgesvc?form=ABC&q=test'
+
+  assert.deepEqual(cleanUrl(docs), { changed: false, removed: [], url: docs })
+  assert.equal(search.url, 'https://www.google.com/search?q=test')
+  assert.equal(russia.url, 'https://www.google.ru/search?q=test')
+  assert.deepEqual(cleanUrl(bingApp), { changed: false, removed: [], url: bingApp })
+})
+
+test('keeps the identifiers that resolve LinkedIn email links', () => {
+  const result = cleanUrl('https://www.linkedin.com/comm/mynetwork/invite?midToken=AQ&midSig=SIG&eid=abc&trk=eml-x&utm_source=email')
+
+  assert.equal(result.url, 'https://www.linkedin.com/comm/mynetwork/invite?midToken=AQ&midSig=SIG&eid=abc')
+})
+
+test('does not treat ordinary application routes as email flows', () => {
+  const subscriptions = cleanUrl('https://www.youtube.com/feed/subscriptions?mkt_tok=tracker&v=1')
+  const settings = cleanUrl('https://app.example.com/settings/preferences?mc_eid=tracker&tab=general')
+
+  assert.equal(subscriptions.url, 'https://www.youtube.com/feed/subscriptions?v=1')
+  assert.equal(settings.url, 'https://app.example.com/settings/preferences?tab=general')
+})
+
+test('protects the email routes used by mail providers', () => {
+  const routes = [
+    'https://mail.example.com/email-preferences?mkt_tok=needed',
+    'https://mail.example.com/subscription-center?mc_eid=needed',
+    'https://mail.example.com/notification_preferences?_kx=needed',
+    'https://mail.example.com/view-in-browser?mc_cid=needed',
+    'https://mail.example.com/x?mode=opt-out&mkt_tok=needed'
+  ]
+
+  for (const route of routes) {
+    const result = cleanUrl(`${route}&utm_source=email`)
+
+    assert.equal(result.url, route, route)
+  }
+})
+
+test('ignores link shorteners that only redirect to a cleaned destination', () => {
+  const shortLink = 'https://youtu.be/abc?si=tracker'
+
+  assert.deepEqual(cleanUrl(shortLink), { changed: false, removed: [], url: shortLink })
+})
+
+test('normalizes hosts and matches disabled sites including their subdomains', () => {
+  assert.equal(normalizeHost('WWW.Example.com'), 'example.com')
+
+  assert.equal(isDisabledHost('www.example.com', [ 'example.com' ]), true)
+  assert.equal(isDisabledHost('shop.example.com', [ 'example.com' ]), true)
+  assert.equal(isDisabledHost('example.com', [ 'www.example.com' ]), true)
+  assert.equal(isDisabledHost('notexample.com', [ 'example.com' ]), false)
+  assert.equal(isDisabledHost('example.com', []), false)
+  assert.equal(isDisabledHost('example.com', [ '' ]), false)
 })

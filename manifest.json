@@ -3,9 +3,19 @@
   "name": "Tracking Query Remover",
   "description": "Removes common tracking parameters from URLs for cleaner links that are easier to share.",
   "version": "1.2.0",
+  "permissions": [ "activeTab", "storage" ],
+  "action": {
+    "default_title": "Tracking Query Remover",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
   "content_scripts": [
     {
-      "matches": [ "<all_urls>" ],
+      "matches": [ "http://*/*", "https://*/*" ],
       "js": [ "content.js" ],
       "run_at": "document_start"
     }
