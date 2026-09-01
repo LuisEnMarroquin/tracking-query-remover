@@ -26,7 +26,7 @@ Click the toolbar icon to turn cleaning off for the site you are on. The list of
 * `storage` to remember the sites you turned off
 * `activeTab` so the popup can show the hostname of the current tab
 
-The [privacy policy](https://luisenmarroquin.github.io/tracking-query-remover/) covers what the extension does and does not do with that access.
+The [privacy policy](https://query.marroquin.dev/) covers what the extension does and does not do with that access.
 
 ## Install
 
