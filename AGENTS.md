@@ -2,7 +2,7 @@
 
 ## Project overview
 
-This repository contains a zero-build Manifest V3 browser extension. Its content script removes known tracking query parameters from the address bar while preserving parameters that control page behavior. It supports Chrome and Firefox, makes no network requests, stores no data, and requests no optional permissions.
+This repository contains a zero-build Manifest V3 browser extension. Its content script removes known tracking query parameters from the address bar while preserving parameters that control page behavior. It supports Chrome and Firefox and makes no network requests. It holds `activeTab` and `storage`, and the only thing it stores is the list of sites the user switched it off on, kept locally through `storage.local`.
 
 Read [TRACKING-PARAMETER-RESEARCH.md](TRACKING-PARAMETER-RESEARCH.md) before changing parameter lists, matching behavior, exceptions, or the extension's privacy claims. That document records the source research and the reason behind the current design.
 
@@ -15,7 +15,9 @@ Read [TRACKING-PARAMETER-RESEARCH.md](TRACKING-PARAMETER-RESEARCH.md) before cha
 - Preserve email identifiers on unsubscribe, preference, subscription-management, and browser-view routes.
 - Preserve fragments, duplicate non-tracking parameters, parameter order, and the raw encoding of values that remain.
 - The extension cleans the visible URL after the initial request. Do not claim that it prevents the destination website from receiving parameters in that request.
-- SPA URL changes must continue to be cleaned without continuous polling.
+- SPA URL changes must continue to be cleaned without continuous polling. The Navigation API covers Chrome, Edge, Firefox 147+, and Safari 26.2+; older browsers are handled by `popstate`, `hashchange`, and a short bounded burst of checks after a user interaction. Do not reintroduce a permanent timer or a document-wide `MutationObserver`.
+- Extension pages run under `script-src 'self'`. Inline `<script>` in `popup.html` never executes, so popup logic has to stay in `popup.js`. Inline `<style>` is fine.
+- Every entry point the manifest references must be added to the packaging list below, or the uploaded build breaks with no local error.
 
 ## Development workflow
 
@@ -37,6 +39,8 @@ The Chrome Web Store ZIP must contain only these files at its root:
 
 - `manifest.json`
 - `content.js`
+- `popup.html`
+- `popup.js`
 - `icon16.png`
 - `icon48.png`
 - `icon128.png`
@@ -44,7 +48,7 @@ The Chrome Web Store ZIP must contain only these files at its root:
 Build it with:
 
 ```sh
-zip -X -j dist/tracking-query-remover-<version>.zip manifest.json content.js icon16.png icon48.png icon128.png
+zip -X -j dist/tracking-query-remover-<version>.zip manifest.json content.js popup.html popup.js icon16.png icon48.png icon128.png
 unzip -t dist/tracking-query-remover-<version>.zip
 ```
 

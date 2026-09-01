@@ -390,9 +390,11 @@ const DOMAIN_RULES = [
 
 const DISABLED_HOSTS_KEY = 'disabledHosts'
 
-// Browsers without the Navigation API do not report history.pushState() calls
-// made by the page, so the address bar is polled instead.
-const URL_POLL_INTERVAL_MS = 500
+// Legacy browsers without the Navigation API are checked shortly after a user
+// interaction, which is what precedes an SPA route change in practice.
+const FALLBACK_CHECK_DELAYS_MS = [ 0, 120, 400, 1000 ]
+
+const FALLBACK_INTERACTION_EVENTS = [ 'click', 'keydown' ]
 
 function hostMatchesDomain (hostname, domain, subdomains) {
   if (hostname === domain) return true
@@ -584,16 +586,22 @@ function startUrlCleaner () {
     return
   }
 
-  // Polling replaces a document-wide MutationObserver here: it costs nothing on
-  // busy pages and it also catches history.pushState() calls that never touch
-  // the DOM, which the observer used to miss entirely.
-  setInterval(() => {
-    if (document.visibilityState === 'hidden') return
-    if (window.location.href === lastSeenUrl) return
+  // Only older browsers reach this point: Chrome, Edge, Firefox 147+ and Safari
+  // 26.2+ all take the branch above. It stays event-driven on purpose. A short
+  // bounded burst of checks after a user interaction catches the
+  // history.pushState() calls that a DOM observer misses, without leaving a
+  // timer running for the lifetime of the tab.
+  const checkForUrlChange = () => {
+    if (window.location.href !== lastSeenUrl) scheduleCleanup()
+  }
 
-    lastSeenUrl = window.location.href
-    scheduleCleanup()
-  }, URL_POLL_INTERVAL_MS)
+  const checkAfterInteraction = () => {
+    for (const delay of FALLBACK_CHECK_DELAYS_MS) setTimeout(checkForUrlChange, delay)
+  }
+
+  for (const eventName of FALLBACK_INTERACTION_EVENTS) {
+    window.addEventListener(eventName, checkAfterInteraction, { capture: true, passive: true })
+  }
 }
 
 if (typeof window !== 'undefined' && typeof history !== 'undefined') {

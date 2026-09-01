@@ -104,7 +104,9 @@ The distinction matters for signed URLs and opaque values: normalizing `%20` to 
 
 The initial cleanup is not sufficient for YouTube, Instagram, X, and other SPAs because they can change the URL with the History API without reloading. The implementation listens for Navigation API success events plus `popstate` and `hashchange`. Chrome therefore never runs a timer, because `navigatesuccess` also fires for `history.pushState` and `history.replaceState`.
 
-Browsers without the Navigation API, which today means Firefox, fall back to a visibility-gated 500 ms comparison of `location.href`. This replaced the earlier DOM-mutation fallback; the reversal and its cost are recorded under "Deliberately rejected approaches".
+The Navigation API reached Baseline in January 2026 and now covers Chrome, Edge, Firefox 147+, and Safari 26.2+, so the fallback below is reached only by older releases.
+
+That fallback stays event-driven: `popstate`, `hashchange`, and a bounded burst of `location.href` checks at 0, 120, 400, and 1000 ms after a `click` or `keydown`. SPA route changes follow a user interaction in practice, so this catches the `history.pushState()` calls that a DOM observer misses without leaving a timer running for the lifetime of the tab. A purely programmatic `pushState` with no interaction and no DOM change is still missed; on a browser this old that is an acceptable gap.
 
 `history.replaceState` is wrapped in `try`/`catch`, and so is the whole start-up path. A top-level document served with `Content-Security-Policy: sandbox` has an opaque origin and rejects history updates with a `SecurityError`; the page is now left alone instead of the content script throwing.
 
@@ -150,13 +152,15 @@ Rejected because it can remove text from values or paths, mishandle encoded name
 
 Rejected when a provider mixes attribution and navigation in the same namespace. AppsFlyer and Adjust are the main examples: deep-link and fallback fields are functional, so only reviewed attribution names are removed.
 
-### Continuous location polling — reversed on 2026-09-01
+### Continuous location polling
 
-Originally rejected because it would run a timer on every matching page for the full lifetime of the tab. The DOM-mutation fallback that replaced it turned out to have two defects. A `MutationObserver` bound to `documentElement` with `subtree: true` runs its callback on *every* DOM mutation of every page in the fallback browser, which is not obviously cheaper than a timer on a busy page. More importantly it detects nothing at all when an SPA calls `history.pushState()` without touching the DOM, which is a correctness bug rather than a cost.
+Rejected because it would run a timer on every matching page for the full lifetime of the tab.
 
-The current fallback is a 500 ms interval that returns immediately when `document.visibilityState === 'hidden'`, so background tabs do no work, and Chrome never reaches this path at all. The original objection still stands on its own terms — this is a timer, and it is permanent for the lifetime of the tab — so the change is recorded here as a deliberate trade of a bounded, constant cost for correctness, not as a finding that the old reasoning was wrong.
+This decision was briefly overturned during the 2026-09-01 audit and then restored, so the reasoning is worth recording in full. The audit correctly identified that the DOM-mutation fallback it had replaced has two defects: a `MutationObserver` bound to `documentElement` with `subtree: true` runs its callback on *every* DOM mutation of every page, which is not obviously cheaper than a timer on a busy page; and it detects nothing at all when an SPA calls `history.pushState()` without touching the DOM, which is a correctness bug rather than a cost. A 500 ms visibility-gated interval was shipped in its place.
 
-`AGENTS.md` still instructs agents that "SPA URL changes must continue to be cleaned without continuous polling". That instruction and the shipped code now disagree. The project owner has to settle it in one direction: either restore a mutation-based fallback and accept the missed `pushState` case, or update the instruction.
+Both were then dropped. The fix was to notice that the fallback barely runs any more — the Navigation API has been Baseline since January 2026 — and that SPA route changes follow user interaction, so a bounded burst of checks after `click` or `keydown` catches the same `pushState` case with no permanent timer and no per-mutation callback. That is the current implementation.
+
+The general lesson: when a documented decision looks wrong, check whether the constraint that motivated it still holds before trading it away. Here the observer was genuinely defective, but the answer was not the option that had already been rejected.
 
 ### Pre-request blocking in this release
 
@@ -181,6 +185,7 @@ Smaller corrections made in the same pass:
 - `cleanUrl` returned a normalized `url.href` for valid URLs but the raw input for invalid ones. It now always returns the input untouched when `changed` is `false`.
 - `isEmailActionUrl` was recomputed once per parameter; it is now computed once per URL.
 - A dead `lastSeenUrl` assignment was removed from the scheduler.
+- The document-wide `MutationObserver` fallback was replaced by interaction-triggered checks; see "Continuous location polling" above for why the intermediate polling version was not kept.
 - Google gained `ru`, `com.ua`, `co.id`, `com.ph`, `gr`, `hu`, `ro`, `cz`, and `com.vn`; eBay gained `com.hk`, `com.my`, `com.sg`, and `ph`.
 - The README no longer records where the extension signing key is kept.
 
@@ -255,4 +260,4 @@ Run the maintained suite with:
 node --test test/content.test.js
 ```
 
-The store ZIP intentionally excludes this research file and all test/development files. From 1.2.0 it must also contain `popup.html` and `popup.js`, which the manifest references; the file list in `AGENTS.md` predates them and needs updating.
+The store ZIP intentionally excludes this research file and all test/development files. From 1.2.0 it must also contain `popup.html` and `popup.js`, which the manifest references; the packaging list in `AGENTS.md` was updated to match.
