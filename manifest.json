@@ -1,8 +1,8 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Tracking Query Remover",
-  "description": "Removes useless tracking information from url",
-  "version": "1.1.0",
+  "description": "Removes common tracking parameters from URLs for cleaner links that are easier to share.",
+  "version": "1.2.0",
   "content_scripts": [
     {
       "matches": [ "<all_urls>" ],
