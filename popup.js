@@ -31,11 +31,11 @@ function readCurrentHost (callback) {
 }
 
 function saveDisabledHosts (host, disabled) {
-  chrome.storage.sync.get({ [DISABLED_HOSTS_KEY]: [] }, items => {
+  chrome.storage.local.get({ [DISABLED_HOSTS_KEY]: [] }, items => {
     const stored = items[DISABLED_HOSTS_KEY].filter(entry => normalizeHost(String(entry)) !== host)
     const disabledHosts = disabled ? stored.concat(host) : stored
 
-    chrome.storage.sync.set({ [DISABLED_HOSTS_KEY]: disabledHosts }, () => {
+    chrome.storage.local.set({ [DISABLED_HOSTS_KEY]: disabledHosts }, () => {
       note.hidden = false
     })
   })
@@ -49,7 +49,7 @@ readCurrentHost(host => {
 
   hostLabel.textContent = host
 
-  chrome.storage.sync.get({ [DISABLED_HOSTS_KEY]: [] }, items => {
+  chrome.storage.local.get({ [DISABLED_HOSTS_KEY]: [] }, items => {
     const disabled = items[DISABLED_HOSTS_KEY].some(entry => normalizeHost(String(entry)) === host)
 
     toggle.checked = !disabled

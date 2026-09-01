@@ -513,12 +513,12 @@ function cleanCurrentUrl () {
 
 function readDisabledHosts (callback) {
   try {
-    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.sync) {
+    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
       callback([])
       return
     }
 
-    chrome.storage.sync.get({ [DISABLED_HOSTS_KEY]: [] }, items => {
+    chrome.storage.local.get({ [DISABLED_HOSTS_KEY]: [] }, items => {
       const failed = chrome.runtime && chrome.runtime.lastError
       callback(failed ? [] : items[DISABLED_HOSTS_KEY])
     })
@@ -532,7 +532,7 @@ function watchDisabledHosts (callback) {
     if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.onChanged) return
 
     chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName !== 'sync' || !changes[DISABLED_HOSTS_KEY]) return
+      if (areaName !== 'local' || !changes[DISABLED_HOSTS_KEY]) return
       callback(changes[DISABLED_HOSTS_KEY].newValue || [])
     })
   } catch (error) {
